@@ -1,7 +1,7 @@
 import { API_URL } from "../constrants";
 
-async function submitAction(data) {
-    const url = `${API_URL}/api/v1/auth/register`;
+async function signinAction(data) {
+    const url = `${API_URL}/api/v1/auth/signin`;
     const response = await fetch(url, {
         method: 'post',
         headers: {
@@ -11,4 +11,4 @@ async function submitAction(data) {
     });
     return response;
 }
-export default submitAction;
+export default signinAction;

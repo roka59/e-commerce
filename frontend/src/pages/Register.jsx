@@ -1,22 +1,34 @@
 import Logo from "../components/Logo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useCookies } from 'react-cookie';
 import registerSchema from "../validationSchemas/registerSchema";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import submitAction from "../actions/submitAction";
 
 function Register() {
+  const navigate = useNavigate()
+  const [cookies, setCookies] = useCookies(['authToken'])
+  const [backendError, setBackendError] = useState();
     const [passwordType, setPasswordType] = useState("password");
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({ resolver: yupResolver(registerSchema) });
 
   async function onSubmit(data) {
-    await submitAction(data);
+    setBackendError()
+    const response = await submitAction(data);
+    const {sucess, token, error} = await response.json()
+    if(error) {
+      setBackendError(error.messages.join(', '))
+    } else if(sucess){
+ console.log(sucess.message);
+ setCookies('authToken', token);
+    }
   }
   console.log(errors);
   function togglePasswordType() {
@@ -26,6 +38,11 @@ function Register() {
     }
     setPasswordType(newPasswordType);
   }
+  useEffect(() => {
+    if (cookies.authToken) {
+      return navigate("/dashboard");
+    }
+  }, [cookies, navigate])
   return (
     <div className="flex min-h-full flex-1">
       <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
@@ -45,7 +62,9 @@ function Register() {
               </Link>
             </p>
           </div>
-
+{
+  backendError && <p className="text-red-500 text-sm mt-4">{backendError}</p>
+}
           <div className="mt-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="flex justify-between">
@@ -184,6 +203,7 @@ function Register() {
                     {errors.verifyPassword.message}
                   </span>
                 )}
+                
               </div>
 
               <div>
